@@ -97,8 +97,8 @@ def main(image_fpath, output_fpath):
             df = pd.DataFrame(points, columns=['X', 'Y'])
             df.to_csv(output_fpath, index=False)
 
-    t1 = scene.visuals.Text('Text in root scene (24 pt)', parent=image, color='red', pos=(100,100))
-    t1.font_size = 24
+    # t1 = scene.visuals.Text('Text in root scene (24 pt)', parent=image, color='red', pos=(100,100))
+    # t1.font_size = 24
     # Set 2D camera (the camera will scale to the contents in the scene)
     view.camera = scene.PanZoomCamera(aspect=1)
     view.camera.set_range()
