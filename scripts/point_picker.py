@@ -24,8 +24,9 @@ view = canvas.central_widget.add_view()
 
 @click.command()
 @click.argument('image_fpath')
-@click.argument('output_fpath')
-def main(image_fpath, output_fpath):
+@click.argument('input_points_fpath')
+@click.argument('output_points_fpath', required=False)
+def main(image_fpath, input_points_fpath, output_points_fpath):
     global canvas
 
     logging.basicConfig(level=logging.INFO)
@@ -34,14 +35,16 @@ def main(image_fpath, output_fpath):
     logging.info(f"Loaded image with shape {im.shape}")
     image = scene.visuals.Image(im, parent=view.scene)
 
-
     app.current_pos = None
 
-    try:
-        df = pd.read_csv(output_fpath)
+    if output_points_fpath:
+        df = pd.read_csv(input_points_fpath)
         points = [(p.X, p.Y) for p in df.itertuples()]
-    except FileNotFoundError:
+        output_fpath = output_points_fpath
+    else:
         points = []
+        output_fpath = input_points_fpath
+    
 
     @canvas.events.mouse_press.connect
     def on_mouse_press(event):
@@ -69,13 +72,22 @@ def main(image_fpath, output_fpath):
     def update_drawing():
         draw_im = im.copy()
         for r, c in points:
-            rr, cc = circle(r, c, 5)
-            draw_im[rr, cc] = 255 #, 0, 0
+            rr, cc = circle(r, c, 3)
+            try:
+                draw_im[rr, cc] = 255 #, 0, 0
+            except IndexError:
+                print(f"Point at {r}, {c} out of bounds")
+                raise
+            
         image.set_data(draw_im)
         canvas.update()
 
     @canvas.events.key_press.connect
     def key_event(event):
+
+        if event.key.name == 'Escape':
+            app.quit()
+
         if event.key.name == 'P':
             print("Added point")
             tr = view.node_transform(image)
